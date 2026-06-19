@@ -1,4 +1,4 @@
-﻿# Realm Forward Panel Installer
+# Realm Forward Panel Installer
 
 One-command installer for a NAT VPS forwarding node. It installs:
 
