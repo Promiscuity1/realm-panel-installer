@@ -26,21 +26,21 @@ usage() {
 Usage:
   bash install.sh [options]
 
-If you run this script in an interactive terminal, missing values are prompted.
-Press Enter to accept the shown default.
+如果在交互式终端运行，缺少的配置会逐项询问。
+直接回车使用括号里的默认值。
 
-Options:
-  --panel-port PORT          Internal web panel port. Default: 50002
-  --listen-port PORT         Internal Realm listen port. Default: 33507
-  --remote-host HOST         Forward target host. Default: www.mokuoha.com
-  --remote-port PORT         Forward target port. Default: 33507
-  --panel-user USER          Web panel username. Default: admin
-  --panel-password PASS      Web panel password. Default: random
-  --public-panel-port PORT   Optional, only used in final output.
-  --public-forward-port PORT Optional, only used in final output.
-  -h, --help                 Show help.
+参数:
+  --panel-port PORT          Web 面板内部端口。默认: 50002
+  --listen-port PORT         Realm 内部监听端口。默认: 33507
+  --remote-host HOST         转发目标地址。默认: www.mokuoha.com
+  --remote-port PORT         转发目标端口。默认: 33507
+  --panel-user USER          Web 面板用户名。默认: admin
+  --panel-password PASS      Web 面板密码。默认: 随机生成
+  --public-panel-port PORT   可选，仅用于最终提示显示公网面板端口。
+  --public-forward-port PORT 可选，仅用于最终提示显示公网转发端口。
+  -h, --help                 显示帮助。
 
-Example:
+示例:
   bash install.sh --public-panel-port 50001 --public-forward-port 33507
   bash install.sh --panel-port 51006 --listen-port 21003 --remote-host 85.149.211.29 --remote-port 21003
 EOF
@@ -60,7 +60,7 @@ while [[ $# -gt 0 ]]; do
     --public-panel-port) PUBLIC_PANEL_PORT="${2:?}"; PUBLIC_PANEL_PORT_SET=1; shift 2 ;;
     --public-forward-port) PUBLIC_FORWARD_PORT="${2:?}"; PUBLIC_FORWARD_PORT_SET=1; shift 2 ;;
     -h|--help) usage; exit 0 ;;
-    *) fail "Unknown argument: $1" ;;
+    *) fail "未知参数: $1" ;;
   esac
 done
 
@@ -79,33 +79,33 @@ prompt_value() {
 
 prompt_config() {
   [[ -t 0 && -r /dev/tty ]] || return 0
-  echo "Interactive configuration. Press Enter to use the default." > /dev/tty
+  echo "交互式配置：直接回车使用默认值。" > /dev/tty
   if [[ $PANEL_PORT_SET -eq 0 ]]; then
-    PANEL_PORT="$(prompt_value 'Internal web panel port' "$PANEL_PORT")"
+    PANEL_PORT="$(prompt_value 'Web 面板内部端口' "$PANEL_PORT")"
   fi
   if [[ $LISTEN_PORT_SET -eq 0 ]]; then
-    LISTEN_PORT="$(prompt_value 'Internal forwarding listen port' "$LISTEN_PORT")"
+    LISTEN_PORT="$(prompt_value '转发内部监听端口' "$LISTEN_PORT")"
   fi
   if [[ $REMOTE_HOST_SET -eq 0 ]]; then
-    REMOTE_HOST="$(prompt_value 'Forward target host/IP' "$REMOTE_HOST")"
+    REMOTE_HOST="$(prompt_value '转发目标地址/IP' "$REMOTE_HOST")"
   fi
   if [[ $REMOTE_PORT_SET -eq 0 ]]; then
-    REMOTE_PORT="$(prompt_value 'Forward target port' "$REMOTE_PORT")"
+    REMOTE_PORT="$(prompt_value '转发目标端口' "$REMOTE_PORT")"
   fi
   if [[ $PUBLIC_PANEL_PORT_SET -eq 0 ]]; then
-    PUBLIC_PANEL_PORT="$(prompt_value 'Public web panel port for output only' "${PUBLIC_PANEL_PORT:-$PANEL_PORT}")"
+    PUBLIC_PANEL_PORT="$(prompt_value 'Web 面板公网端口（仅用于安装完成提示）' "${PUBLIC_PANEL_PORT:-$PANEL_PORT}")"
   fi
   if [[ $PUBLIC_FORWARD_PORT_SET -eq 0 ]]; then
-    PUBLIC_FORWARD_PORT="$(prompt_value 'Public forwarding port for output only' "${PUBLIC_FORWARD_PORT:-$LISTEN_PORT}")"
+    PUBLIC_FORWARD_PORT="$(prompt_value '转发公网端口（仅用于安装完成提示）' "${PUBLIC_FORWARD_PORT:-$LISTEN_PORT}")"
   fi
 }
 
 prompt_config
 
-[[ $EUID -eq 0 ]] || fail "Run as root."
-[[ "$PANEL_PORT" =~ ^[0-9]+$ ]] || fail "Invalid --panel-port"
-[[ "$LISTEN_PORT" =~ ^[0-9]+$ ]] || fail "Invalid --listen-port"
-[[ "$REMOTE_PORT" =~ ^[0-9]+$ ]] || fail "Invalid --remote-port"
+[[ $EUID -eq 0 ]] || fail "请使用 root 用户运行。"
+[[ "$PANEL_PORT" =~ ^[0-9]+$ ]] || fail "--panel-port 无效"
+[[ "$LISTEN_PORT" =~ ^[0-9]+$ ]] || fail "--listen-port 无效"
+[[ "$REMOTE_PORT" =~ ^[0-9]+$ ]] || fail "--remote-port 无效"
 
 if [[ -z "$PANEL_PASSWORD" ]]; then
   if command -v openssl >/dev/null 2>&1; then
@@ -126,7 +126,7 @@ install_packages() {
     elif command -v dnf >/dev/null 2>&1; then
       dnf install -y curl tar python3 ca-certificates
     else
-      fail "No supported package manager found. Install curl, tar, python3, ca-certificates manually."
+      fail "未找到支持的包管理器，请手动安装 curl、tar、python3、ca-certificates。"
     fi
   fi
 }
@@ -137,7 +137,7 @@ realm_asset() {
   case "$arch" in
     x86_64|amd64) printf 'realm-x86_64-unknown-linux-gnu.tar.gz' ;;
     aarch64|arm64) printf 'realm-aarch64-unknown-linux-gnu.tar.gz' ;;
-    *) fail "Unsupported architecture: $arch" ;;
+    *) fail "不支持的系统架构: $arch" ;;
   esac
 }
 
@@ -147,7 +147,7 @@ install_realm() {
   url="https://github.com/zhboner/realm/releases/download/${REALM_VERSION}/${asset}"
   tmp="/tmp/${asset}.$$"
   mkdir -p "$REALM_DIR" "$REALM_CONFIG_DIR"
-  log "Downloading Realm ${REALM_VERSION} (${asset})"
+  log "正在下载 Realm ${REALM_VERSION} (${asset})"
   curl -fsSL -o "$tmp" "$url"
   tar -xzf "$tmp" -C "$REALM_DIR" realm
   rm -f "$tmp"
@@ -345,19 +345,19 @@ main() {
   ip="$(curl -fsSL --max-time 5 https://api.ipify.org 2>/dev/null || hostname -I | awk '{print $1}')"
   cat <<EOF
 
-Install complete.
+安装完成。
 
-Panel:
-  URL: http://${ip}:${PUBLIC_PANEL_PORT:-$PANEL_PORT}
-  Username: ${PANEL_USER}
-  Password: ${PANEL_PASSWORD}
+Web 面板:
+  地址: http://${ip}:${PUBLIC_PANEL_PORT:-$PANEL_PORT}
+  用户名: ${PANEL_USER}
+  密码: ${PANEL_PASSWORD}
 
-Forward:
-  Public: ${ip}:${PUBLIC_FORWARD_PORT:-$LISTEN_PORT}
-  Internal listen: 0.0.0.0:${LISTEN_PORT}
-  Remote: ${REMOTE_HOST}:${REMOTE_PORT}
+转发:
+  公网入口: ${ip}:${PUBLIC_FORWARD_PORT:-$LISTEN_PORT}
+  内部监听: 0.0.0.0:${LISTEN_PORT}
+  目标: ${REMOTE_HOST}:${REMOTE_PORT}
 
-Services:
+服务:
   systemctl status realm
   systemctl status realm-panel
 EOF
