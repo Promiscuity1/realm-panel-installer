@@ -1,54 +1,54 @@
-# Realm Forward Panel Installer
+# Realm 转发面板安装器
 
-One-command installer for a NAT VPS forwarding node. It installs:
+这是给 NAT VPS 使用的一键安装脚本，会安装：
 
-- Realm forwarding core
-- A simple Basic Auth web panel
-- systemd services for both
-- One default forwarding rule
+- Realm 转发内核
+- 带 Basic Auth 登录的简易 Web 面板
+- systemd 自启服务
+- 一条默认转发规则
 
-## Interactive use
+## 交互式安装
 
-Run this on the NAT VPS as root:
+在 NAT VPS 上用 root 执行：
 
 ```bash
 bash <(curl -fsSL https://raw.githubusercontent.com/Promiscuity1/realm-panel-installer/main/install.sh)
 ```
 
-It will ask for:
+脚本会用中文询问：
 
-- internal web panel port
-- internal forwarding listen port
-- target host/IP
-- target port
-- public panel port for final output
-- public forwarding port for final output
+- Web 面板内部端口
+- 转发内部监听端口
+- 转发目标地址/IP
+- 转发目标端口
+- Web 面板公网端口（仅用于安装完成提示）
+- 转发公网端口（仅用于安装完成提示）
 
-Press Enter to accept each default.
+直接回车使用默认值。
 
-## One-line default use
+## 一行命令默认安装
 
-If your NAT panel maps:
+如果 NAT 面板映射如下：
 
-- external `50001` -> internal `50002` for the web panel
-- external `33507` -> internal `33507` for forwarding
+- 外部 `50001` -> 内部 `50002`，用于 Web 面板
+- 外部 `33507` -> 内部 `33507`，用于转发
 
-Run on the VPS as root:
+在 VPS 上执行：
 
 ```bash
 bash <(curl -fsSL https://raw.githubusercontent.com/Promiscuity1/realm-panel-installer/main/install.sh) --public-panel-port 50001 --public-forward-port 33507
 ```
 
-Default rule:
+默认规则：
 
 ```text
 0.0.0.0:33507 -> www.mokuoha.com:33507
 ```
 
-## Custom target
+## 自定义非交互安装
 
 ```bash
-bash install.sh \
+bash <(curl -fsSL https://raw.githubusercontent.com/Promiscuity1/realm-panel-installer/main/install.sh) \
   --panel-port 50002 \
   --listen-port 33507 \
   --remote-host www.mokuoha.com \
@@ -57,7 +57,7 @@ bash install.sh \
   --public-forward-port 33507
 ```
 
-## Manage services
+## 常用管理命令
 
 ```bash
 systemctl status realm
